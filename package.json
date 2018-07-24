@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "if [[ ${NODE_ENV} == \"production\" ]]; then npm run start:prod; else npm run start:dev; fi",
+    "start:dev": "nodemon ./bin/www",
+    "start:prod": "node ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
