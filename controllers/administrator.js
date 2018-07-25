@@ -1,9 +1,9 @@
 //var DB = require('../models/database.js');
-exports.listing = function(req, res, next){
-    var results = [
-        {"id":1,"name":"Carlos"},
-        {"id":2,"name":"Juan"}
-    ];
+var baseController = require('./base.js');
+baseController.config.table = 'administrator';
+baseController.config.publicColumns = [
+    'id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active'
+];
 
-    return res.status(200).send(results);
-};
+module.exports.listing = baseController.listing();
+module.exports.read = baseController.read();
