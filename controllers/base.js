@@ -1,12 +1,6 @@
 var mysql = require('mysql');
-var connection = mysql.createConnection({
-    'host': '192.168.1.61',
-    'port': 3316,
-    'user': 'root',
-    'password': 'keWa25Bcw83g',
-    'database': 'tfm',
-    'dateStrings': true
-});
+var appConfig = require('../config.js');
+var connection = mysql.createConnection(appConfig.db);
 
 module.exports.config = {
     'table':null,
