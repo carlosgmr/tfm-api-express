@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var controller = require('../controllers/administrator');
+var controller = require('../controllers/registry');
 
 router.get('/', controller.listing);
 router.get('/:id', controller.read);

@@ -5,8 +5,16 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 //var indexRouter = require('./routes/index');
-//var usersRouter = require('./routes/users');
 var administratorRouter = require('./routes/administrator');
+var instructorRouter = require('./routes/instructor');
+var userRouter = require('./routes/user');
+var groupRouter = require('./routes/group');
+var questionaryModelRouter = require('./routes/questionary-model');
+var questionModelRouter = require('./routes/question-model');
+var questionaryRouter = require('./routes/questionary');
+var questionRouter = require('./routes/question');
+var answerRouter = require('./routes/answer');
+var registryRouter = require('./routes/registry');
 
 var app = express();
 
@@ -21,10 +29,18 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //app.use('/', indexRouter);
-//app.use('/users', usersRouter);
 
 // API
 app.use('/administrator', administratorRouter);
+app.use('/instructor', instructorRouter);
+app.use('/user', userRouter);
+app.use('/group', groupRouter);
+app.use('/questionary-model', questionaryModelRouter);
+app.use('/question-model', questionModelRouter);
+app.use('/questionary', questionaryRouter);
+app.use('/question', questionRouter);
+app.use('/answer', answerRouter);
+app.use('/registry', registryRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

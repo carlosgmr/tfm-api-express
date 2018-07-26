@@ -1,7 +1,7 @@
 var baseController = require('./base.js');
-baseController.config.table = 'administrator';
+baseController.config.table = 'question';
 baseController.config.publicColumns = [
-    'id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active'
+    'id', 'questionary', 'statement', 'sort', 'model', 'created_at', 'updated_at', 'active'
 ];
 
 module.exports.listing = baseController.listing();
