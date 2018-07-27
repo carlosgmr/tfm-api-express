@@ -1,22 +1,11 @@
-var mysql = require('mysql');
-var appConfig = require('../config.js');
-var connection = mysql.createConnection(appConfig.db);
+var pool = require('../modules/database');
 
-module.exports.config = {
-    'table':null,
-    'publicColumns':[],
-    'rulesForListing':[],
-    'rulesForCreate':[],
-    'rulesForUpdate':[],
-    'relations':[]
-};
-
-module.exports.listing = function() {
+module.exports.listing = function(config) {
     var me = this;
-    var table = me.config.table;
+    var table = config.table;
     var publicColumns = [];
 
-    me.config.publicColumns.forEach(function(currentValue, index, array) {
+    config.publicColumns.forEach(function(currentValue, index, array) {
         publicColumns.push('`'+currentValue+'`');
     });
 
@@ -40,7 +29,7 @@ module.exports.listing = function() {
             query += ' WHERE '+where;
         }
 
-        connection.query(query, bindings, function (error, results, fields) {
+        pool.query(query, bindings, function (error, results, fields) {
             if (error) {
                 return res.status(500).send({
                     'error':error
@@ -52,14 +41,42 @@ module.exports.listing = function() {
     };
 };
 
-module.exports.listingRelation = function() {
+module.exports.listingRelation = function(config, relationTable) {
+    var me = this;
+    var colsT1 = [], colsT2 = [];
+
+    config.publicColumns.forEach(function(currentValue, index, array) {
+        colsT1.push('T1.`'+currentValue+'`');
+    });
+    config.join.publicColumns.forEach(function(currentValue, index, array) {
+        colsT2.push('T2.`'+currentValue+'`');
+    });
+
+    var query = 'SELECT '+colsT1.join(',')+(colsT2.length > 0 ? ','+colsT2.join(',') : '')+' '+
+                'FROM '+
+                    '`'+relationTable+'` AS T1 '+
+                    'INNER JOIN `'+config.join.table+'` AS T2 '+
+                    'ON T2.`'+config.join.fkColumn+'` = T1.`id` '+
+                'WHERE T2.`'+config.join.whereColumn+'` = ?';
+
+    return function(req, res, next) {
+        pool.query(query, [req.params.id], function (error, results, fields) {
+            if (error) {
+                return res.status(500).send({
+                    'error':error
+                });
+            }
+
+            return res.status(200).send(results);
+        });
+    };
 };
 
-module.exports.read = function() {
+module.exports.read = function(config) {
     var me = this;
 
     return function(req, res, next) {
-        me.getPublicData(req.params.id, function(error, results) {
+        me.getPublicData(config, req.params.id, function(error, results) {
             if (error) {
                 return res.status(500).send({
                     'error':error
@@ -77,18 +94,19 @@ module.exports.read = function() {
     };
 };
 
-module.exports.getPublicData = function(id, callback) {
+module.exports.getPublicData = function(config, id, callback) {
     var me = this;
+    var table = config.table;
     var publicColumns = [];
 
-    me.config.publicColumns.forEach(function(currentValue, index, array) {
+    config.publicColumns.forEach(function(currentValue, index, array) {
         publicColumns.push('`'+currentValue+'`');
     });
 
-    var query = 'SELECT '+publicColumns.join(',')+' FROM `'+me.config.table+'` WHERE id = ?';
+    var query = 'SELECT '+publicColumns.join(',')+' FROM `'+table+'` WHERE id = ?';
     var bindings = [id];
 
-    connection.query(query, bindings, function (error, results, fields) {
+    pool.query(query, bindings, function (error, results, fields) {
         if (error) {
             callback(error, null);
             return;
@@ -99,13 +117,13 @@ module.exports.getPublicData = function(id, callback) {
     });
 };
 
-module.exports.create = function() {
+module.exports.create = function(config) {
     var me = this;
-    var table = me.config.table;
+    var table = config.table;
 
     return function(req, res, next) {
         // de momento cogemos los datos directamente del request
-        var data = req.body;
+        var data = config.hasOwnProperty('formatData') ? config.formatData(req.body) : req.body;
         var columns = [], bindings = [], params = [];
 
         for (var col in data) {
@@ -115,7 +133,7 @@ module.exports.create = function() {
         }
 
         var query = 'INSERT INTO `'+table+'` ('+columns.join(',')+') VALUES ('+params.join(',')+')';
-        connection.query(query, bindings, function (error, results, fields) {
+        pool.query(query, bindings, function (error, results, fields) {
             if (error) {
                 return res.status(500).send({
                     'error':error
@@ -123,7 +141,7 @@ module.exports.create = function() {
             }
 
             var id = results.insertId;
-            me.getPublicData(id, function(error, results) {
+            me.getPublicData(config, id, function(error, results) {
                 if (error) {
                     return res.status(500).send({
                         'error':error
@@ -142,14 +160,14 @@ module.exports.create = function() {
     };
 };
 
-module.exports.update = function() {
+module.exports.update = function(config) {
     var me = this;
-    var table = me.config.table;
+    var table = config.table;
 
     return function(req, res, next) {
         var id = req.params.id;
         // de momento cogemos los datos directamente del request
-        var data = req.body;
+        var data = config.hasOwnProperty('formatData') ? config.formatData(req.body) : req.body;
         var columns = [], bindings = [];
 
         for (var col in data) {
@@ -159,14 +177,14 @@ module.exports.update = function() {
         bindings.push(id);
 
         var query = 'UPDATE `'+table+'` SET '+columns.join(',')+' WHERE `id` = ?';
-        connection.query(query, bindings, function (error, results, fields) {
+        pool.query(query, bindings, function (error, results, fields) {
             if (error) {
                 return res.status(500).send({
                     'error':error
                 });
             }
 
-            me.getPublicData(id, function(error, results) {
+            me.getPublicData(config, id, function(error, results) {
                 if (error) {
                     return res.status(500).send({
                         'error':error
@@ -185,14 +203,14 @@ module.exports.update = function() {
     };
 };
 
-module.exports.delete = function() {
+module.exports.delete = function(config) {
     var me = this;
-    var table = me.config.table;
+    var table = config.table;
 
     return function(req, res, next) {
         var id = req.params.id;
 
-        me.getPublicData(id, function(error, results) {
+        me.getPublicData(config, id, function(error, results) {
             if (error) {
                 return res.status(500).send({
                     'error':error
@@ -209,7 +227,7 @@ module.exports.delete = function() {
             var bindings = [id];
             var query = 'DELETE FROM `'+table+'` WHERE `id` = ?';
 
-            connection.query(query, bindings, function (error, results, fields) {
+            pool.query(query, bindings, function (error, results, fields) {
                 if (error) {
                     return res.status(500).send({
                         'error':error
@@ -218,6 +236,22 @@ module.exports.delete = function() {
 
                 return res.status(200).send(result);
             });
+        });
+    };
+};
+
+module.exports.notAllowed = function() {
+    return function(req, res, next) {
+        return res.status(405).send({
+            'error':['Método no soportado']
+        });
+    };
+};
+
+module.exports.unauthorized = function() {
+    return function(req, res, next) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
         });
     };
 };

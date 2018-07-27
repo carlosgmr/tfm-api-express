@@ -1,11 +1,18 @@
 var baseController = require('./base.js');
-baseController.config.table = 'registry';
-baseController.config.publicColumns = [
-    'id', 'user', 'questionary', 'question', 'answer', 'created_at'
-];
+var config = {
+    'table':'registry',
+    'publicColumns':['id', 'user', 'questionary', 'question', 'answer', 'created_at'],
+    'rulesForListing':[],
+    'rulesForCreate':[],
+    'rulesForUpdate':[],
+    'relations':[],
+    'formatData':function(data){
+        return data;
+    }
+};
 
-module.exports.listing = baseController.listing();
-module.exports.read = baseController.read();
-module.exports.create = baseController.create();
-module.exports.update = baseController.update();
-module.exports.delete = baseController.delete();
+module.exports.listing = baseController.listing(config);
+module.exports.read = baseController.read(config);
+module.exports.create = baseController.create(config);
+module.exports.update = baseController.notAllowed();
+module.exports.delete = baseController.notAllowed();

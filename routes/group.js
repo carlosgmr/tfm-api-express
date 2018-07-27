@@ -7,5 +7,7 @@ router.get('/:id', controller.read);
 router.post('/', controller.create);
 router.patch('/:id', controller.update);
 router.delete('/:id', controller.delete);
+router.get('/:id/instructor', controller.listingInstructor);
+router.get('/:id/user', controller.listingUser);
 
 module.exports = router;
