@@ -1,4 +1,7 @@
 var pool = require('../modules/database');
+var validator = require('express-validator/check');
+var validationResult = validator.validationResult;
+var message = require('../modules/message');
 
 module.exports.listing = function(config) {
     var me = this;
@@ -122,6 +125,12 @@ module.exports.create = function(config) {
     var table = config.table;
 
     return function(req, res, next) {
+        // validación
+        var validationErrors = validationResult(req);
+        if (!validationErrors.isEmpty()) {
+            return res.status(422).send(message.formatErrors(validationErrors.array()));
+        }
+
         // de momento cogemos los datos directamente del request
         var data = config.hasOwnProperty('formatData') ? config.formatData(req.body) : req.body;
         var columns = [], bindings = [], params = [];

@@ -8,5 +8,6 @@ router.post('/', controller.create);
 router.patch('/:id', controller.update);
 router.delete('/:id', controller.delete);
 router.get('/:id/group', controller.listingGroup);
+router.post('/:id/group', controller.currentGroup);
 
 module.exports = router;

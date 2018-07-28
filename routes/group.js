@@ -9,5 +9,7 @@ router.patch('/:id', controller.update);
 router.delete('/:id', controller.delete);
 router.get('/:id/instructor', controller.listingInstructor);
 router.get('/:id/user', controller.listingUser);
+router.post('/:id/instructor', controller.currentInstructor);
+router.post('/:id/user', controller.currentUser);
 
 module.exports = router;
