@@ -1,7 +1,7 @@
 var pool = require('../modules/database');
 var validator = require('express-validator/check');
 var validationResult = validator.validationResult;
-var message = require('../modules/message');
+var utilities = require('../modules/utilities');
 
 module.exports.listing = function(config) {
     var me = this;
@@ -13,8 +13,15 @@ module.exports.listing = function(config) {
     });
 
     return function(req, res, next) {
-        // de momento cogemos los datos directamente del request
-        var data = req.query;
+        // validación
+        var validationErrors = validationResult(req);
+        if (!validationErrors.isEmpty()) {
+            return res.status(422).send(utilities.formatErrors(validationErrors.array()));
+        }
+
+        // filtramos y formateamos request
+        var data = utilities.filterRequest(req.query, config.rulesForListing);
+
         var query = 'SELECT '+publicColumns.join(',')+' FROM `'+table+'`';
         var where = '';
         var bindings = [];
@@ -128,11 +135,15 @@ module.exports.create = function(config) {
         // validación
         var validationErrors = validationResult(req);
         if (!validationErrors.isEmpty()) {
-            return res.status(422).send(message.formatErrors(validationErrors.array()));
+            return res.status(422).send(utilities.formatErrors(validationErrors.array()));
         }
 
-        // de momento cogemos los datos directamente del request
-        var data = config.hasOwnProperty('formatData') ? config.formatData(req.body) : req.body;
+        // filtramos y formateamos request
+        var data = utilities.filterRequest(req.body, config.rulesForCreate);
+        if (config.hasOwnProperty('formatData')) {
+            data = config.formatData(data);
+        }
+
         var columns = [], bindings = [], params = [];
 
         for (var col in data) {
@@ -175,8 +186,19 @@ module.exports.update = function(config) {
 
     return function(req, res, next) {
         var id = req.params.id;
-        // de momento cogemos los datos directamente del request
-        var data = config.hasOwnProperty('formatData') ? config.formatData(req.body) : req.body;
+
+        // validación
+        var validationErrors = validationResult(req);
+        if (!validationErrors.isEmpty()) {
+            return res.status(422).send(utilities.formatErrors(validationErrors.array()));
+        }
+
+        // filtramos y formateamos request
+        var data = utilities.filterRequest(req.body, config.rulesForUpdate);
+        if (config.hasOwnProperty('formatData')) {
+            data = config.formatData(data);
+        }
+
         var columns = [], bindings = [];
 
         for (var col in data) {

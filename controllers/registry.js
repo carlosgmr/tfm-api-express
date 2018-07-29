@@ -1,15 +1,6 @@
 var baseController = require('./base.js');
-var config = {
-    'table':'registry',
-    'publicColumns':['id', 'user', 'questionary', 'question', 'answer', 'created_at'],
-    'rulesForListing':[],
-    'rulesForCreate':[],
-    'rulesForUpdate':[],
-    'relations':[],
-    'formatData':function(data){
-        return data;
-    }
-};
+var model = require('../models/registry');
+var config = model.config;
 
 module.exports.listing = baseController.listing(config);
 module.exports.read = baseController.read(config);

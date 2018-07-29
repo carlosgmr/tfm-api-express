@@ -1,12 +1,6 @@
 var baseController = require('./base.js');
-var config = {
-    'table':'questionary_model',
-    'publicColumns':['id', 'name', 'description', 'created_at', 'updated_at', 'active'],
-    'rulesForListing':[],
-    'rulesForCreate':[],
-    'rulesForUpdate':[],
-    'relations':[]
-};
+var model = require('../models/questionary-model');
+var config = model.config;
 
 module.exports.listing = baseController.listing(config);
 module.exports.read = baseController.read(config);

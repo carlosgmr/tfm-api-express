@@ -13,6 +13,9 @@ module.exports.errorMessage = function(key, field, formatParams) {
         'minLength':format('The '+field+' must be at least %min% characters.', formatParams),
         'maxLength':format('The '+field+' may not be greater than %max% characters.', formatParams),
         'betweenLength':format('The '+field+' must be at least %min% characters and may not be greater than %max% characters.', formatParams),
+        'minInt':format('The '+field+' must be at least %min%.', formatParams),
+        'maxInt':format('The '+field+' may not be greater than %max%.', formatParams),
+        'betweenInt':format('The '+field+' must be at least %min% and may not be greater than %max%.', formatParams),
         'isBoolean':'The '+field+' field must be true or false.'
     };
     return messages.hasOwnProperty(key) ? messages[key] : 'Invalid value';
@@ -27,6 +30,20 @@ module.exports.formatErrors = function(errors) {
             result[error.param] = [];
         }
         result[error.param].push(error.msg);
+    }
+
+    return result;
+};
+
+module.exports.filterRequest = function(requestData, rules) {
+    var result = {};
+
+    if (rules) {
+        for (var field in rules) {
+            if (requestData.hasOwnProperty(field)) {
+                result[field] = requestData[field];
+            }
+        }
     }
 
     return result;

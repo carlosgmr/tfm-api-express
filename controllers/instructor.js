@@ -1,25 +1,6 @@
 var baseController = require('./base.js');
-var config = {
-    'table':'instructor',
-    'publicColumns':['id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active'],
-    'rulesForListing':[],
-    'rulesForCreate':[],
-    'rulesForUpdate':[],
-    'relations':{
-        'group':{
-            'join':{
-                'table':'instructor_group',
-                'publicColumns':['added_at'],
-                'fkColumn':'group',
-                'whereColumn':'instructor'
-            },
-            'publicColumns':['id', 'name', 'description', 'created_at', 'updated_at', 'active']
-        }
-    },
-    'formatData':function(data){
-        return data;
-    }
-};
+var model = require('../models/instructor');
+var config = model.config;
 var pool = require('../modules/database');
 
 module.exports.listing = baseController.listing(config);

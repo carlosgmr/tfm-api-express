@@ -1,31 +1,6 @@
 var baseController = require('./base.js');
-var config = {
-    'table':'group',
-    'publicColumns':['id', 'name', 'description', 'created_at', 'updated_at', 'active'],
-    'rulesForListing':[],
-    'rulesForCreate':[],
-    'rulesForUpdate':[],
-    'relations':{
-        'instructor':{
-            'join':{
-                'table':'instructor_group',
-                'publicColumns':['added_at'],
-                'fkColumn':'instructor',
-                'whereColumn':'group'
-            },
-            'publicColumns':['id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active']
-        },
-        'user':{
-            'join':{
-                'table':'user_group',
-                'publicColumns':['added_at'],
-                'fkColumn':'user',
-                'whereColumn':'group'
-            },
-            'publicColumns':['id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active']
-        }
-    }
-};
+var model = require('../models/group');
+var config = model.config;
 var pool = require('../modules/database');
 
 module.exports.listing = baseController.listing(config);
