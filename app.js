@@ -15,6 +15,7 @@ var questionaryRouter = require('./routes/questionary');
 var questionRouter = require('./routes/question');
 var answerRouter = require('./routes/answer');
 var registryRouter = require('./routes/registry');
+var authRouter = require('./routes/auth');
 
 var app = express();
 
@@ -41,6 +42,7 @@ app.use('/questionary', questionaryRouter);
 app.use('/question', questionRouter);
 app.use('/answer', answerRouter);
 app.use('/registry', registryRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

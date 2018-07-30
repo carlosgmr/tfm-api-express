@@ -1,4 +1,5 @@
 var utilities = require('../modules/utilities');
+var bcrypt = require('bcrypt');
 
 module.exports.config = {
     'table':'administrator',
@@ -7,7 +8,6 @@ module.exports.config = {
     'rulesForCreate':{
         'email':{
             'in': ['body'],
-            //'required|email|max:256|unique:'.$this->table.',email',
             'exists':{
                 'errorMessage':utilities.errorMessage('exists', 'email')
             },
@@ -17,6 +17,9 @@ module.exports.config = {
             'isLength':{
                 'errorMessage':utilities.errorMessage('maxLength', 'email', {max:256}),
                 'options':{max:256}
+            },
+            'custom':{
+                'options': utilities.isUnique('administrator', 'email')
             }
         },
         'password':{
@@ -72,7 +75,6 @@ module.exports.config = {
     'rulesForUpdate':{
         'email':{
             'in': ['body'],
-            //'required|email|max:256|unique:'.$this->table.',email',
             'optional':{
                 'options':{nullable:true}
             },
@@ -82,6 +84,9 @@ module.exports.config = {
             'isLength':{
                 'errorMessage':utilities.errorMessage('maxLength', 'email', {max:256}),
                 'options':{max:256}
+            },
+            'custom':{
+                'options': utilities.isUnique('administrator', 'email', 'id', 'id')
             }
         },
         'password':{
@@ -136,6 +141,11 @@ module.exports.config = {
     },
     'relations':null,
     'formatData':function(data){
+        if (data.hasOwnProperty('password')) {
+            var saltRounds = 10;
+            var salt = bcrypt.genSaltSync(saltRounds);
+            data['password'] = bcrypt.hashSync(data['password'], salt);
+        }
         return data;
     }
 };

@@ -6,18 +6,22 @@ module.exports.config = {
     'rulesForListing':{
         'question':{
             'in': ['query'],
-            //'nullable|exists:question,id',
             'optional':{
                 'options':{nullable:true}
+            },
+            'custom':{
+                'options': utilities.existsInDb('question', 'id', 'question')
             }
         }
     },
     'rulesForCreate':{
         'question':{
             'in': ['body'],
-            //'required|exists:question,id',
             'exists':{
                 'errorMessage':utilities.errorMessage('exists', 'question')
+            },
+            'custom':{
+                'options': utilities.existsInDb('question', 'id', 'question')
             }
         },
         'statement':{

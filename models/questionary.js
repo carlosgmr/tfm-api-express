@@ -6,16 +6,20 @@ module.exports.config = {
     'rulesForListing':{
         'group':{
             'in': ['query'],
-            //'nullable|exists:group,id',
             'optional':{
                 'options':{nullable:true}
+            },
+            'custom':{
+                'options': utilities.existsInDb('group', 'id', 'group')
             }
         },
         'model':{
             'in': ['query'],
-            //'nullable|exists:questionary_model,id',
             'optional':{
                 'options':{nullable:true}
+            },
+            'custom':{
+                'options': utilities.existsInDb('questionary_model', 'id', 'model')
             }
         },
         'public':{
@@ -40,9 +44,11 @@ module.exports.config = {
     'rulesForCreate':{
         'group':{
             'in': ['body'],
-            //'required|exists:group,id',
             'exists':{
                 'errorMessage':utilities.errorMessage('exists', 'group')
+            },
+            'custom':{
+                'options': utilities.existsInDb('group', 'id', 'group')
             }
         },
         'title':{
@@ -67,9 +73,11 @@ module.exports.config = {
         },
         'model':{
             'in': ['body'],
-            //'required|exists:questionary_model,id',
             'exists':{
                 'errorMessage':utilities.errorMessage('exists', 'model')
+            },
+            'custom':{
+                'options': utilities.existsInDb('questionary_model', 'id', 'model')
             }
         },
         'public':{
