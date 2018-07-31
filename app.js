@@ -29,6 +29,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// middleware JWT
+var jwtMiddleware = require('./middlewares/jwt');
+app.use(jwtMiddleware.handle);
+
 //app.use('/', indexRouter);
 
 // API

@@ -8,8 +8,8 @@ module.exports.read = baseController.read(config);
 module.exports.create = baseController.create(config);
 module.exports.update = baseController.update(config);
 module.exports.delete = baseController.delete(config);
-module.exports.listingInstructor = baseController.listingRelation(config.relations.instructor, 'instructor');
-module.exports.listingUser = baseController.listingRelation(config.relations.user, 'user');
+module.exports.listingInstructor = baseController.listingRelation(config, 'instructor');
+module.exports.listingUser = baseController.listingRelation(config, 'user');
 
 module.exports.currentInstructor = function(req, res, next) {
     var data = req.body;
@@ -38,7 +38,7 @@ module.exports.currentInstructor = function(req, res, next) {
         });
 
         var step3 = function(){
-            return baseController.listingRelation(config.relations.instructor, 'instructor')(req, res, next);
+            return baseController.listingRelation(config, 'instructor')(req, res, next);
         };
         var step2 = function(){
             if (toInsert.length > 0) {
@@ -100,7 +100,7 @@ module.exports.currentUser = function(req, res, next) {
         });
 
         var step3 = function(){
-            return baseController.listingRelation(config.relations.user, 'user')(req, res, next);
+            return baseController.listingRelation(config, 'user')(req, res, next);
         };
         var step2 = function(){
             if (toInsert.length > 0) {

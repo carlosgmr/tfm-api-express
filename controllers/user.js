@@ -8,7 +8,7 @@ module.exports.read = baseController.read(config);
 module.exports.create = baseController.create(config);
 module.exports.update = baseController.update(config);
 module.exports.delete = baseController.delete(config);
-module.exports.listingGroup = baseController.listingRelation(config.relations.group, 'group');
+module.exports.listingGroup = baseController.listingRelation(config, 'group');
 
 module.exports.currentGroup = function(req, res, next) {
     var data = req.body;
@@ -37,7 +37,7 @@ module.exports.currentGroup = function(req, res, next) {
         });
 
         var step3 = function(){
-            return baseController.listingRelation(config.relations.group, 'group')(req, res, next);
+            return baseController.listingRelation(config, 'group')(req, res, next);
         };
         var step2 = function(){
             if (toInsert.length > 0) {

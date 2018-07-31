@@ -14,6 +14,10 @@ module.exports = {
         'password': 'contraseña',
         'database': 'base de datos',
         'dateStrings': true
+    },
+    'jwt':{
+        'issuer':'tfm-api-express',
+        'secret':'your-secret-key'
     }
 };
 ```

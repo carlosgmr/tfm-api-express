@@ -3,7 +3,7 @@ var validator = require('express-validator/check');
 var validationResult = validator.validationResult;
 var utilities = require('../modules/utilities');
 
-module.exports.listing = function(config) {
+module.exports.listing = function(config, route) {
     var me = this;
     var table = config.table;
     var publicColumns = [];
@@ -13,6 +13,13 @@ module.exports.listing = function(config) {
     });
 
     return function(req, res, next) {
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
+
         // validación
         var validationErrors = validationResult(req);
         if (!validationErrors.isEmpty()) {
@@ -51,25 +58,33 @@ module.exports.listing = function(config) {
     };
 };
 
-module.exports.listingRelation = function(config, relationTable) {
+module.exports.listingRelation = function(config, relationTable, route) {
     var me = this;
     var colsT1 = [], colsT2 = [];
+    var relationConfig = config['relations'][relationTable];
 
-    config.publicColumns.forEach(function(currentValue, index, array) {
+    relationConfig.publicColumns.forEach(function(currentValue, index, array) {
         colsT1.push('T1.`'+currentValue+'`');
     });
-    config.join.publicColumns.forEach(function(currentValue, index, array) {
+    relationConfig.join.publicColumns.forEach(function(currentValue, index, array) {
         colsT2.push('T2.`'+currentValue+'`');
     });
 
     var query = 'SELECT '+colsT1.join(',')+(colsT2.length > 0 ? ','+colsT2.join(',') : '')+' '+
                 'FROM '+
                     '`'+relationTable+'` AS T1 '+
-                    'INNER JOIN `'+config.join.table+'` AS T2 '+
-                    'ON T2.`'+config.join.fkColumn+'` = T1.`id` '+
-                'WHERE T2.`'+config.join.whereColumn+'` = ?';
+                    'INNER JOIN `'+relationConfig.join.table+'` AS T2 '+
+                    'ON T2.`'+relationConfig.join.fkColumn+'` = T1.`id` '+
+                'WHERE T2.`'+relationConfig.join.whereColumn+'` = ?';
 
     return function(req, res, next) {
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
+
         pool.query(query, [req.params.id], function (error, results, fields) {
             if (error) {
                 return res.status(500).send({
@@ -82,10 +97,17 @@ module.exports.listingRelation = function(config, relationTable) {
     };
 };
 
-module.exports.read = function(config) {
+module.exports.read = function(config, route) {
     var me = this;
 
     return function(req, res, next) {
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
+
         me.getPublicData(config, req.params.id, function(error, results) {
             if (error) {
                 return res.status(500).send({
@@ -127,11 +149,18 @@ module.exports.getPublicData = function(config, id, callback) {
     });
 };
 
-module.exports.create = function(config) {
+module.exports.create = function(config, route) {
     var me = this;
     var table = config.table;
 
     return function(req, res, next) {
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
+
         // validación
         var validationErrors = validationResult(req);
         if (!validationErrors.isEmpty()) {
@@ -180,12 +209,17 @@ module.exports.create = function(config) {
     };
 };
 
-module.exports.update = function(config) {
+module.exports.update = function(config, route) {
     var me = this;
     var table = config.table;
 
     return function(req, res, next) {
-        var id = req.params.id;
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
 
         // validación
         var validationErrors = validationResult(req);
@@ -199,6 +233,7 @@ module.exports.update = function(config) {
             data = config.formatData(data);
         }
 
+        var id = req.params.id;
         var columns = [], bindings = [];
 
         for (var col in data) {
@@ -234,11 +269,18 @@ module.exports.update = function(config) {
     };
 };
 
-module.exports.delete = function(config) {
+module.exports.delete = function(config, route) {
     var me = this;
     var table = config.table;
 
     return function(req, res, next) {
+        // ACL
+        if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+            return res.status(401).send({
+                'error':['Acceso no autorizado']
+            });
+        }
+
         var id = req.params.id;
 
         me.getPublicData(config, id, function(error, results) {
