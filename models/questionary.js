@@ -139,5 +139,27 @@ module.exports.config = {
             }
         }
     },
-    'relations':null
+    'relations':null,
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'questionary.listing':
+            case 'questionary.read':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'questionary.create':
+            case 'questionary.update':
+            case 'questionary.delete':
+                if (['instructor'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
+    }
 };

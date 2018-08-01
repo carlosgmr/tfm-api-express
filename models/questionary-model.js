@@ -66,5 +66,27 @@ module.exports.config = {
             }
         }
     },
-    'relations':null
+    'relations':null,
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'questionaryModel.listing':
+            case 'questionaryModel.read':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'questionaryModel.create':
+            case 'questionaryModel.update':
+            case 'questionaryModel.delete':
+                if (['administrator'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
+    }
 };

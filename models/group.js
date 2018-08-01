@@ -85,5 +85,31 @@ module.exports.config = {
             },
             'publicColumns':['id', 'email', 'name', 'surname_1', 'surname_2', 'created_at', 'updated_at', 'active']
         }
+    },
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'group.listing':
+            case 'group.read':
+            case 'group.listing.instructor':
+            case 'group.listing.user':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'group.create':
+            case 'group.update':
+            case 'group.delete':
+            case 'group.current.instructor':
+            case 'group.current.user':
+                if (['administrator'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
     }
 };

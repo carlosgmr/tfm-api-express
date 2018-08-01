@@ -3,15 +3,23 @@ var model = require('../models/group');
 var config = model.config;
 var pool = require('../modules/database');
 
-module.exports.listing = baseController.listing(config);
-module.exports.read = baseController.read(config);
-module.exports.create = baseController.create(config);
-module.exports.update = baseController.update(config);
-module.exports.delete = baseController.delete(config);
-module.exports.listingInstructor = baseController.listingRelation(config, 'instructor');
-module.exports.listingUser = baseController.listingRelation(config, 'user');
+module.exports.listing = baseController.listing(config, 'group.listing');
+module.exports.read = baseController.read(config, 'group.read');
+module.exports.create = baseController.create(config, 'group.create');
+module.exports.update = baseController.update(config, 'group.update');
+module.exports.delete = baseController.delete(config, 'group.delete');
+module.exports.listingInstructor = baseController.listingRelation(config, 'instructor', 'group.listing.instructor');
+module.exports.listingUser = baseController.listingRelation(config, 'user', 'group.listing.user');
 
 module.exports.currentInstructor = function(req, res, next) {
+    var route = 'group.current.instructor';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
     var data = req.body;
     var id = req.params.id;
     var query = 'SELECT `id`, `instructor` FROM `instructor_group` WHERE `group` = ?';
@@ -38,7 +46,7 @@ module.exports.currentInstructor = function(req, res, next) {
         });
 
         var step3 = function(){
-            return baseController.listingRelation(config, 'instructor')(req, res, next);
+            return baseController.listingRelation(config, 'instructor', route)(req, res, next);
         };
         var step2 = function(){
             if (toInsert.length > 0) {
@@ -74,6 +82,14 @@ module.exports.currentInstructor = function(req, res, next) {
 };
 
 module.exports.currentUser = function(req, res, next) {
+    var route = 'group.current.user';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
     var data = req.body;
     var id = req.params.id;
     var query = 'SELECT `id`, `user` FROM `user_group` WHERE `group` = ?';
@@ -100,7 +116,7 @@ module.exports.currentUser = function(req, res, next) {
         });
 
         var step3 = function(){
-            return baseController.listingRelation(config, 'user')(req, res, next);
+            return baseController.listingRelation(config, 'user', route)(req, res, next);
         };
         var step2 = function(){
             if (toInsert.length > 0) {

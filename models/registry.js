@@ -80,5 +80,28 @@ module.exports.config = {
         }
     },
     'rulesForUpdate':{},
-    'relations':null
+    'relations':null,
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'registry.listing':
+            case 'registry.read':
+                if (['administrator', 'instructor'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'registry.create':
+                if (['user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'registry.update':
+            case 'registry.delete':
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
+    }
 };

@@ -157,5 +157,37 @@ module.exports.config = {
             data['password'] = bcrypt.hashSync(data['password'], salt);
         }
         return data;
+    },
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'user.read':
+            case 'user.listing':
+            case 'user.listing.group':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'user.update':
+                if (['administrator', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+
+                if (req.appUser.role === 'user' &&  req.appUser.id !== parseInt(req.params.id, 10)) {
+                    return false;
+                }
+                break;
+            case 'user.create':
+            case 'user.delete':
+            case 'user.current.group':
+                if (['administrator'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
     }
 };

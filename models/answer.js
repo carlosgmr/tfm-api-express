@@ -75,5 +75,27 @@ module.exports.config = {
             },
             'publicColumns':['id', 'name', 'description', 'created_at', 'updated_at', 'active']
         }
+    },
+    'checkAcl':function(req, route){
+        switch (route) {
+            case 'answer.listing':
+            case 'answer.read':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+            case 'answer.create':
+            case 'answer.update':
+            case 'answer.delete':
+                if (['administrator'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        return true;
     }
 };
