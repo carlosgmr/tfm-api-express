@@ -15,7 +15,7 @@ module.exports.authenticate = function(req, res, next) {
     }
 
     var data = utilities.filterRequest(req.body, model.config.rulesForLogin);
-    var query = 'SELECT `id`, `email`, `password`, `name`, `surname_1`, `surname_2`, `active` '+
+    var query = 'SELECT `id`, `email`, `password`, `name`, `surname_1`, `surname_2`, `created_at`, ``, `active` '+
             'FROM `'+data['role']+'` '+
             'WHERE `email` = ?';
 
@@ -45,21 +45,28 @@ module.exports.authenticate = function(req, res, next) {
             });
         }
 
+        // datos usuario
+        var user = {
+            'role':data['role'],
+            'id':appUser['id'],
+            'email':appUser['email'],
+            'fullname':(appUser['name']+' '+appUser['surname_1']+' '+appUser['surname_2']).trim(),
+            'created_at':appUser['created_at'],
+            'updated_at':appUser['updated_at']
+        };
+
         // generamos token
         var payload = {
             'iss':appConfig.jwt.issuer,
             'iat':Math.floor(new Date().getTime() / 1000),
-            'data':{
-                'role':data['role'],
-                'id':appUser['id'],
-                'email':appUser['email'],
-                'fullname':(appUser['name']+' '+appUser['surname_1']+' '+appUser['surname_2']).trim()
-            }
+            'data':user
         };
         var token = jwt.sign(payload, appConfig.jwt.secret);
 
-        return res.status(200).send({
+        var response = {
+            'user':user,
             'token':token
-        });
+        };
+        return res.status(200).send(response);
     });
 };
