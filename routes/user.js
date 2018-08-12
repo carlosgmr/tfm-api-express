@@ -12,5 +12,6 @@ router.patch('/:id', checkSchema(model.config.rulesForUpdate), controller.update
 router.delete('/:id', controller.delete);
 router.get('/:id/group', controller.listingGroup);
 router.post('/:id/group', controller.currentGroup);
+router.get('/:id/group/questionary', controller.questionnairesMade);
 
 module.exports = router;

@@ -79,3 +79,52 @@ module.exports.currentGroup = function(req, res, next) {
         step1();
     });
 };
+
+module.exports.questionnairesMade = function(req, res, next) {
+    var route = 'user.listing.questionnairesMade';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
+    var id = req.params.id;
+    var query = 'SELECT '+
+                'r.`questionary` AS `questionary_id`,'+
+                'q.`group` AS `group_id`,'+
+                'q.`title` AS `questionary_title`,'+
+                'g.`name` AS `group_name` '+
+            'FROM '+
+                '`registry` AS r '+
+                'INNER JOIN `questionary` AS q ON r.`questionary` = q.`id` '+
+                'INNER JOIN `group` AS g ON q.`group` = g.`id` '+
+            'WHERE '+
+                'r.`user` = ? '+
+            'GROUP BY '+
+                'r.`questionary` '+
+            'ORDER BY q.`group`, r.`questionary`';
+    var bindings = [id];
+
+    pool.query(query, [id], function (error, questionarys, fields) {
+        if (error) {
+            return res.status(500).send({
+                'error':error
+            });
+        }
+
+        var results = [];
+        for (var i=0; i<questionarys.length; i++) {
+            results.push({
+                'id': questionarys[i]['questionary_id'],
+                'title': questionarys[i]['questionary_title'],
+                'group': {
+                    'id': questionarys[i]['group_id'],
+                    'name': questionarys[i]['group_name']
+                }
+            });
+        }
+
+        return res.status(200).send(results);
+    });
+};

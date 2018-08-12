@@ -183,6 +183,14 @@ module.exports.config = {
                     return false;
                 }
                 break;
+            case 'user.listing.questionnairesMade':
+                if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
+                    return false;
+                }
+                if (req.appUser.role === 'user' &&  req.appUser.id !== parseInt(req.params.id, 10)) {
+                    return false;
+                }
+                break;
 
             default:
                 return false;
