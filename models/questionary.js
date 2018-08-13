@@ -151,6 +151,7 @@ module.exports.config = {
             case 'questionary.create':
             case 'questionary.update':
             case 'questionary.delete':
+            case 'questionary.readComplete':
                 if (['instructor'].indexOf(req.appUser.role) === -1) {
                     return false;
                 }
