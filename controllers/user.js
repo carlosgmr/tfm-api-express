@@ -106,7 +106,7 @@ module.exports.questionnairesMade = function(req, res, next) {
             'ORDER BY q.`group`, r.`questionary`';
     var bindings = [id];
 
-    pool.query(query, [id], function (error, questionarys, fields) {
+    pool.query(query, bindings, function (error, questionarys, fields) {
         if (error) {
             return res.status(500).send({
                 'error':error

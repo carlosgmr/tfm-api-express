@@ -168,6 +168,7 @@ module.exports.config = {
                 }
                 break;
             case 'instructor.update':
+            case 'instructor.listing.questionary':
                 if (['administrator', 'instructor'].indexOf(req.appUser.role) === -1) {
                     return false;
                 }
