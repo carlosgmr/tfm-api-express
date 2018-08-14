@@ -184,6 +184,7 @@ module.exports.config = {
                 }
                 break;
             case 'user.listing.questionnairesMade':
+            case 'user.read.questionaryDetails':
                 if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
                     return false;
                 }
