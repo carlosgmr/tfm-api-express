@@ -156,3 +156,150 @@ module.exports.readComplete = function(req, res, next) {
         });
     });
 };
+
+module.exports.addQuestions = function(req, res, next) {
+    var route = 'questionary.addQuestions';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
+    var id = req.params.id;
+    var data = req.body;
+
+    // validación si existen questions creadas
+    var queryNumQuestions = 'SELECT COUNT(*) AS `num_questions` FROM `question` WHERE `questionary` = ?';
+    pool.query(queryNumQuestions, [id], function (error, resultNumQuestions, fields) {
+        if (error) {
+            return res.status(500).send({
+                'error':error
+            });
+        }
+
+        if (resultNumQuestions[0]['num_questions'] > 0) {
+            return res.status(422).send({'questions':['El examen/encuesta ya tiene preguntas creadas. No se pueden añadir más']});
+        }
+
+        // validaciones formato
+        var questions = data['questions'];
+        var errors = config.validateQuestions(questions);
+
+        if (errors.length > 0) {
+            return res.status(422).send({'questions': errors});
+        }
+
+        // creamos inserts e iniciamos transacción
+        var insertQuestion = 'INSERT INTO `question` '+
+                '(`questionary`,`statement`,`sort`,`model`,`active`) '+
+                'VALUES (?, ?, ?, ?, ?)';
+        var insertAnswers = 'INSERT INTO `answer` '+
+                '(`question`,`statement`,`correct`) '+
+                'VALUES ?';
+
+        pool.getConnection(function(error, connection) {
+            if (error) {
+                return res.status(500).send({
+                    'error':error
+                });
+            }
+
+            connection.beginTransaction(function(error) {
+                if (error) {
+                    return res.status(500).send({
+                        'error':error
+                    });
+                }
+
+                var doInsertQuestion = function(index, data){
+                    return new Promise(function(resolve, reject){
+                        connection.query(insertQuestion, [id, data['statement'], data['sort'], data['model'], 1], function (error, result) {
+                            if (error) {
+                                console.log(error);
+                                return reject('No se ha podido guardar la pregunta #'+(index+1));
+                            }
+                            return resolve(result);
+                        });
+                    })
+                    .then(function(result) {
+                        var idQuestion = result.insertId;
+                        console.log('Pregunta #'+(index+1)+' creada correctamente');
+                        return doInsertAnswers(index, idQuestion, data['answers']);
+                    })
+                    .catch(function(error){
+                        return Promise.reject(error);
+                    });
+                };
+
+                var doInsertAnswers = function(index, idQuestion, answers){
+                    var toInsert = [];
+
+                    for (var i=0; i<answers.length; i++) {
+                        toInsert.push([idQuestion, answers[i]['statement'], answers[i]['correct']]);
+                    }
+
+                    return new Promise(function(resolve, reject){
+                        connection.query(insertAnswers, [toInsert], function (error, result) {
+                            if (error) {
+                                console.log(error);
+                                return reject('No se han podido guardar las respuestas de la pregunta #'+(index+1));
+                            }
+                            return resolve(result);
+                        });
+                    })
+                    .then(function(result) {
+                        console.log('Respuestas pregunta #'+(index+1)+' creadas correctamente');
+                    })
+                    .catch(function(error){
+                        return Promise.reject(error);
+                    });
+                };
+
+                var createChain = function() {
+                    var chain = Promise.resolve();
+                    for (var i=0; i<questions.length; i++) {
+                        var factory = function(index, question) {
+                            return function(){
+                                return doInsertQuestion(index, question);
+                            };
+                        };
+
+                        chain = chain
+                                .then(factory(i, questions[i]))
+                                .catch(function(error){
+                                    return Promise.reject(error);
+                                });
+                    }
+                    return chain;
+                };
+
+                createChain()
+                .then(function(){
+                    // si todo OK, commit
+                    connection.commit(function(error) {
+                        connection.release();
+
+                        if (error) {
+                            return res.status(500).send({
+                                'error':error
+                            });
+                        }
+
+                        return res.status(201).send(data);
+                    });
+                })
+                .catch(function(error){
+                    // si error, rollback
+                    return connection.rollback(function() {
+                        connection.release();
+
+                        return res.status(500).send({
+                            'error':[error]
+                        });
+                    });
+                });
+            });
+        });
+    });
+};
