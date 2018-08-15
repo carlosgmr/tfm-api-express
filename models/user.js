@@ -185,6 +185,8 @@ module.exports.config = {
                 break;
             case 'user.listing.questionnairesMade':
             case 'user.read.questionaryDetails':
+            case 'user.listing.questionnairesByGroupAndState':
+            case 'user.listing.questionnairesByState':
                 if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
                     return false;
                 }
@@ -198,5 +200,28 @@ module.exports.config = {
         }
 
         return true;
+    },
+    'formatQuestionnairesByState':function(items){
+        var result = [], item;
+
+        for (var i=0; i<items.length; i++) {
+            item = items[i];
+            result.push({
+                'id': item['questionary_id'],
+                'group': {
+                    'id': item['group_id'],
+                    'name': item['group_name']
+                },
+                'title': item['questionary_title'],
+                'description': item['questionary_description'],
+                'model': item['questionary_model'],
+                'created_at': item['questionary_created_at'],
+                'updated_at': item['questionary_updated_at'],
+                'public': item['questionary_public'],
+                'active': item['questionary_active']
+            });
+        }
+
+        return result;
     }
 };

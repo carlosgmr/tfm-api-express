@@ -144,6 +144,7 @@ module.exports.config = {
         switch (route) {
             case 'questionary.listing':
             case 'questionary.read':
+            case 'questionary.readBasic':
                 if (['administrator', 'instructor', 'user'].indexOf(req.appUser.role) === -1) {
                     return false;
                 }

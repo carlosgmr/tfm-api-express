@@ -11,6 +11,7 @@ router.post('/', checkSchema(model.config.rulesForCreate), controller.create);
 router.patch('/:id', checkSchema(model.config.rulesForUpdate), controller.update);
 router.delete('/:id', controller.delete);
 router.get('/:id/complete', controller.readComplete);
+router.get('/:id/basic', controller.readBasic);
 router.post('/:id/add-questions', controller.addQuestions);
 
 module.exports = router;

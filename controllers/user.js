@@ -138,7 +138,7 @@ module.exports.questionaryDetails = function(req, res, next) {
         });
     }
 
-    var idUser = req.params.idUser;
+    var idUser = req.params.id;
     var idQuestionary = req.params.idQuestionary;
     var result = {};
 
@@ -308,6 +308,135 @@ module.exports.questionaryDetails = function(req, res, next) {
                     });
                 });
             });
+        });
+    });
+};
+
+module.exports.questionnairesByGroupAndState = function(req, res, next) {
+    var route = 'user.listing.questionnairesByGroupAndState';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
+    var idUser = req.params.id;
+    var idGroup = req.params.idGroup;
+    var result = {};
+    var queryDone = 'SELECT q.* '+
+            'FROM '+
+                '`registry` AS r '+
+                'INNER JOIN `questionary` AS q ON r.`questionary` = q.`id` '+
+            'WHERE '+
+                'r.`user` = ? AND q.`group` = ? '+
+            'GROUP BY '+
+                'q.`id` '+
+            'ORDER BY '+
+                'q.`id`';
+    var queryNotDone = 'SELECT * '+
+            'FROM `questionary` '+
+            'WHERE '+
+                '`group` = ? AND '+
+                '`active` = ? AND '+
+                '`id` NOT IN (SELECT distinct(`questionary`) FROM `registry` WHERE `user` = ?) '+
+            'ORDER BY `id`';
+
+    pool.query(queryDone, [idUser, idGroup], function (error, results) {
+        if (error) {
+            return res.status(500).send({
+                'error':error
+            });
+        }
+
+        result['done'] = results;
+
+        pool.query(queryNotDone, [idGroup, 1, idUser], function (error, results) {
+            if (error) {
+                return res.status(500).send({
+                    'error':error
+                });
+            }
+
+            result['not_done'] = results;
+            return res.status(200).send(result);
+        });
+    });
+};
+
+module.exports.questionnairesByState = function(req, res, next) {
+    var route = 'user.listing.questionnairesByState';
+    // ACL
+    if (config.hasOwnProperty('checkAcl') && !config.checkAcl(req, route)) {
+        return res.status(401).send({
+            'error':['Acceso no autorizado']
+        });
+    }
+
+    var id = req.params.id;
+    var result = {};
+    var queryDone = 'SELECT '+
+            'q.`id` AS `questionary_id`,'+
+            'g.`id` AS `group_id`,'+
+            'g.`name` AS `group_name`,'+
+            'q.`title` AS `questionary_title`,'+
+            'q.`description` AS `questionary_description`,'+
+            'q.`model` AS `questionary_model`,'+
+            'q.`created_at` AS `questionary_created_at`,'+
+            'q.`updated_at` AS `questionary_updated_at`,'+
+            'q.`public` AS `questionary_public`,'+
+            'q.`active` AS `questionary_active` '+
+        'FROM '+
+            '`registry` AS r '+
+            'INNER JOIN `questionary` AS q ON r.`questionary` = q.`id` '+
+            'INNER JOIN `group` AS g ON q.`group` = g.`id` '+
+        'WHERE '+
+            'r.`user` = ? AND '+
+            'q.`group` IN (SELECT distinct(`group`) FROM `user_group` WHERE `user` = ?) '+
+        'GROUP BY '+
+            'q.`id` '+
+        'ORDER BY '+
+            'q.`id`';
+    var queryNotDone = 'SELECT '+
+            'q.`id` AS `questionary_id`,'+
+            'g.`id` AS `group_id`,'+
+            'g.`name` AS `group_name`,'+
+            'q.`title` AS `questionary_title`,'+
+            'q.`description` AS `questionary_description`,'+
+            'q.`model` AS `questionary_model`,'+
+            'q.`created_at` AS `questionary_created_at`,'+
+            'q.`updated_at` AS `questionary_updated_at`,'+
+            'q.`public` AS `questionary_public`,'+
+            'q.`active` AS `questionary_active` '+
+        'FROM '+
+            '`questionary` AS q '+
+            'INNER JOIN `group` AS g ON q.`group` = g.`id` '+
+        'WHERE '+
+            'q.`active` = ? AND '+
+            'q.`group` IN (SELECT distinct(`group`) FROM `user_group` WHERE `user` = ?) AND '+
+            'q.`id` NOT IN (SELECT distinct(`questionary`) FROM `registry` WHERE `user` = ?) '+
+        'ORDER BY '+
+            'q.`id`';
+
+    pool.query(queryDone, [id, id], function (error, items) {
+        if (error) {
+            return res.status(500).send({
+                'error':error
+            });
+        }
+
+        result['done'] = config.formatQuestionnairesByState(items);
+
+        pool.query(queryNotDone, [1, id, id], function (error, items) {
+            if (error) {
+                return res.status(500).send({
+                    'error':error
+                });
+            }
+
+            result['not_done'] = config.formatQuestionnairesByState(items);
+
+            return res.status(200).send(result);
         });
     });
 };
