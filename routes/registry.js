@@ -10,5 +10,6 @@ router.get('/:id', controller.read);
 router.post('/', checkSchema(model.config.rulesForCreate), controller.create);
 router.patch('/:id', controller.update);
 router.delete('/:id', controller.delete);
+router.post('/user/:id/questionary/:idQuestionary', controller.saveAttempt);
 
 module.exports = router;
