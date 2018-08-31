@@ -5,6 +5,7 @@ var validationResult = validator.validationResult;
 var utilities = require('../modules/utilities');
 var model = require('../models/auth');
 var bcrypt = require('bcrypt');
+var sha1 = require('sha1');
 var jwt = require('jsonwebtoken');
 
 module.exports.authenticate = function(req, res, next) {
@@ -15,7 +16,7 @@ module.exports.authenticate = function(req, res, next) {
     }
 
     var data = utilities.filterRequest(req.body, model.config.rulesForLogin);
-    var query = 'SELECT `id`, `email`, `password`, `name`, `surname_1`, `surname_2`, `created_at`, ``, `active` '+
+    var query = 'SELECT `id`, `email`, `password`, `name`, `surname_1`, `surname_2`, `created_at`, `updated_at`, `active` '+
             'FROM `'+data['role']+'` '+
             'WHERE `email` = ?';
 
@@ -39,10 +40,21 @@ module.exports.authenticate = function(req, res, next) {
             });
         }
 
-        if (!bcrypt.compareSync(data['password'], appUser['password'].toString('utf8'))) {
-            return res.status(400).send({
-                'error':['Las credenciales no son válidas']
-            });
+        switch (appConfig.passwordAlgo) {
+            case 'bcrypt':
+                if (!bcrypt.compareSync(data['password'], appUser['password'])) {
+                    return res.status(400).send({
+                        'error':['Las credenciales no son válidas']
+                    });
+                }
+                break;
+            case 'sha1':
+                if (sha1(data['password']) !== appUser['password']) {
+                    return res.status(400).send({
+                        'error':['Las credenciales no son válidas']
+                    });
+                }
+                break;
         }
 
         // datos usuario
@@ -50,7 +62,7 @@ module.exports.authenticate = function(req, res, next) {
             'role':data['role'],
             'id':appUser['id'],
             'email':appUser['email'],
-            'fullname':(appUser['name']+' '+appUser['surname_1']+' '+appUser['surname_2']).trim(),
+            'fullname':(appUser['name']+' '+appUser['surname_1']+' '+(appUser['surname_2'] !== null ? appUser['surname_2'] : '')).trim(),
             'created_at':appUser['created_at'],
             'updated_at':appUser['updated_at']
         };

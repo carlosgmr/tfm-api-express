@@ -1,5 +1,7 @@
+var appConfig = require('../config.js');
 var utilities = require('../modules/utilities');
 var bcrypt = require('bcrypt');
+var sha1 = require('sha1');
 
 module.exports.config = {
     'table':'instructor',
@@ -152,9 +154,16 @@ module.exports.config = {
     },
     'formatData':function(data){
         if (data.hasOwnProperty('password')) {
-            var saltRounds = 10;
-            var salt = bcrypt.genSaltSync(saltRounds);
-            data['password'] = bcrypt.hashSync(data['password'], salt);
+            switch (appConfig.passwordAlgo) {
+                case 'bcrypt':
+                    var saltRounds = 10;
+                    var salt = bcrypt.genSaltSync(saltRounds);
+                    data['password'] = bcrypt.hashSync(data['password'], salt);
+                    break;
+                case 'sha1':
+                    data['password'] = sha1(data['password']);
+                    break;
+            }
         }
         return data;
     },

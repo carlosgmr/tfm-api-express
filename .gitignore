@@ -63,3 +63,4 @@ typings/
 # others
 nbproject/
 config.js
+package-lock.json

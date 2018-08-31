@@ -29,6 +29,26 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// CORS
+app.use(function(req, res, next) {
+    if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With');
+        res.header('Access-Control-Max-Age', '1728000');
+        res.header('Content-Type', 'text/plain charset=UTF-8');
+        res.header('Content-Length', '0');
+        return res.status(204).send();
+    }
+
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With');
+    res.header('Access-Control-Expose-Headers', 'Authorization');
+    next();
+});
+
 // middleware JWT
 var jwtMiddleware = require('./middlewares/jwt');
 app.use(jwtMiddleware.handle);
