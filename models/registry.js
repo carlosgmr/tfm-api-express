@@ -133,7 +133,7 @@ module.exports.config = {
                 continue;
             }
 
-            if (!r.hasOwnProperty('question') || (r.hasOwnProperty('question') && validQuestions.indexOf(r['question']) === -1)) {
+            if (!r.hasOwnProperty('question') || (r.hasOwnProperty('question') && validQuestions.indexOf(parseInt(r['question'], 10)) === -1)) {
                 errors.push('Error en registro #'+(i+1)+': la pregunta no es válida');
                 continue;
             } else {
@@ -144,7 +144,7 @@ module.exports.config = {
                 }
             }
 
-            if (!r.hasOwnProperty('answer') || (r.hasOwnProperty('answer') && validAnswers[r['question']].indexOf(r['answer']) === -1)) {
+            if (!r.hasOwnProperty('answer') || (r.hasOwnProperty('answer') && validAnswers[r['question']].indexOf(parseInt(r['answer'], 10)) === -1)) {
                 errors.push('Error en registro #'+(i+1)+': la respuesta no es válida');
             }
         }
